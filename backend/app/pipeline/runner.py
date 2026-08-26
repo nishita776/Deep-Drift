@@ -3,11 +3,21 @@ Orchestrates the full pipeline for one sample, stage by stage, and writes
 results to the database. This is what the background task in
 app/api/samples.py calls after a POST /samples/{id}/run request.
 
-Flow (matches the corrected architecture discussed in planning):
-  QC -> Reference Search -> split(confident / unassigned)
-     -> [unassigned only] Artifact Filter -> Embedding -> Clustering
-                                            -> Taxonomic Placement -> Novelty Score
-     -> merge -> Biodiversity Metrics
+Flow (maps 1:1 onto the "Processing & AI Analysis Layer" in the technical
+approach diagram):
+
+  Stage 1  QC & ASV Generation
+  Stage 2  Reference Search              -> split confident / unassigned
+  Stage 3  Artifact & Contamination Filter   [unassigned only]
+  Stage 4  Embedding
+  Stage 5  Clustering
+  Stage 6  Taxonomic Placement
+  Stage 7  Novelty Score & Cluster ID
+  Stage 8  Define Taxa + Abundance (merge confident + candidate-novel)
+  Stage 9  Biodiversity Metrics
+
+Retrying a sample (failed or already-done) re-enters at Stage 1 and must
+start from a clean slate — see _clear_previous_run().
 """
 import datetime
 from collections import defaultdict
@@ -18,7 +28,7 @@ from app.config import settings
 from app.pipeline.qc import run_qc
 from app.pipeline.reference_search import search_reference
 from app.pipeline.artifact_filter import filter_artifacts
-from app.pipeline.embedding import embed_batch, embed_sequence
+from app.pipeline.embedding import embed_batch
 from app.pipeline.clustering import cluster_embeddings
 from app.pipeline.taxonomic_placement import place_cluster
 from app.pipeline.novelty_score import score_clusters
@@ -37,6 +47,41 @@ def _get_blank_sequences(db: Session, exclude_sample_id: str) -> set[str]:
     return {b.sequence for b in blanks}
 
 
+def _clear_previous_run(db: Session, sample_id: str) -> None:
+    """Wipes every result row from a prior run of this sample (ASVs, taxa
+    matches, clusters, biodiversity metrics) so retrying a failed or
+    already-completed analysis starts clean.
+
+    Without this, re-running a sample re-inserts a full duplicate set of
+    ASV/TaxaMatch/Cluster rows on top of the old ones (silently corrupting
+    counts), and then crashes at Stage 9 with a sqlite3.IntegrityError
+    because BiodiversityMetric.sample_id is UNIQUE.
+
+    Delete order matters because of foreign keys: TaxaMatch references
+    both ASV and Cluster, so it has to go first; ASV and Cluster have no
+    dependents left after that and can go in either order.
+    """
+    db.query(models.TaxaMatch).filter(
+        models.TaxaMatch.asv_id.in_(
+            db.query(models.ASV.id).filter(models.ASV.sample_id == sample_id)
+        )
+    ).delete(synchronize_session=False)
+
+    db.query(models.TaxaMatch).filter(
+        models.TaxaMatch.cluster_id.in_(
+            db.query(models.Cluster.id).filter(models.Cluster.sample_id == sample_id)
+        )
+    ).delete(synchronize_session=False)
+
+    db.query(models.Cluster).filter(models.Cluster.sample_id == sample_id).delete(synchronize_session=False)
+    db.query(models.ASV).filter(models.ASV.sample_id == sample_id).delete(synchronize_session=False)
+    db.query(models.BiodiversityMetric).filter(
+        models.BiodiversityMetric.sample_id == sample_id
+    ).delete(synchronize_session=False)
+
+    db.commit()
+
+
 def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
     job = db.get(models.Job, job_id)
     sample = db.get(models.Sample, sample_id)
@@ -46,7 +91,11 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
         sample.status = "running"
         db.commit()
 
-        # ---- Stage 1: QC & ASV generation ----
+        # Always start from a clean slate — handles both "Retry analysis"
+        # after a failure and re-running a sample that already succeeded.
+        _clear_previous_run(db, sample.id)
+
+        # ---- Stage 1: QC & ASV Generation ----
         asv_records = run_qc(sample.upload_path)
         if not asv_records:
             raise ValueError("No reads survived QC — check input FASTQ quality/format.")
@@ -74,6 +123,8 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
                     database_source=match.database_source,
                 ))
             else:
+                # Low-confidence / ambiguous matches fall through to the
+                # discovery path (Stages 3-7) instead of being recorded here.
                 unassigned_rows.append(row)
 
         # ---- Stage 3: Artifact & Contamination Filter (unassigned only) ----
@@ -86,9 +137,9 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
                 reason = "contamination" if result.is_contamination else "chimera"
                 db.add(models.TaxaMatch(asv_id=row.id, status=f"filtered_{reason}"))
 
-        # ---- Stage 4: Embedding (survivors only — never the full read set) ----
         cluster_labels = []
         if survivors:
+            # ---- Stage 4: Embedding (survivors only — never the full read set) ----
             embeddings = embed_batch([r.sequence for r in survivors])
 
             # ---- Stage 5: Clustering ----
@@ -100,7 +151,7 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
                 grouped[int(label)].append(row)
 
             # ---- Stage 6: Taxonomic Placement (one representative per cluster) ----
-            # ---- Stage 7: Novelty Score ----
+            # ---- Stage 7: Novelty Score & Cluster ID ----
             cluster_best_sim = {}
             placements = {}
             for label, members in grouped.items():
@@ -143,10 +194,10 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
                 for row in members:
                     db.add(models.TaxaMatch(asv_id=row.id, status="candidate_novel", cluster_id=cluster_row.id))
 
-        # ---- Stage 8: Biodiversity Metrics ----
-        # Build the abundance list from BOTH confident-match ASVs and
-        # candidate-novel clusters — this is the "unified taxa + abundance
-        # table" merge point from the architecture.
+        # ---- Stage 8: Define Taxa + Abundance ----
+        # Merge confident-match ASVs and candidate-novel clusters into one
+        # unified abundance list — the "unified taxa + abundance table"
+        # merge point from the architecture diagram.
         db.flush()
         confident_counts = [
             m.asv.count for m in db.query(models.TaxaMatch)
@@ -155,6 +206,7 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
         cluster_counts = [c.total_reads for c in db.query(models.Cluster).filter(models.Cluster.sample_id == sample.id)]
         all_counts = confident_counts + cluster_counts
 
+        # ---- Stage 9: Biodiversity Metrics ----
         bio = compute_biodiversity(all_counts)
         db.add(models.BiodiversityMetric(
             sample_id=sample.id,
@@ -167,7 +219,7 @@ def run_pipeline(db: Session, sample_id: str, job_id: str) -> None:
         job.finished_at = datetime.datetime.utcnow()
         db.commit()
 
-    except Exception as exc:  # noqa: BLE001 — we want to record ANY failure, then re-raise-free so the API can report it
+    except Exception as exc:  # noqa: BLE001 — record ANY failure, then let the API report it
         db.rollback()
         job = db.get(models.Job, job_id)
         sample = db.get(models.Sample, sample_id)
