@@ -47,6 +47,9 @@ export interface SampleSummary {
   status: string
 }
 
+/** IUCN Red List category — from a curated static table, not a live lookup. */
+export type ConservationStatus = 'LC' | 'NT' | 'VU' | 'EN' | 'CR' | 'DD' | 'unknown'
+
 /** One row of GET /samples/{sample_id}/results -> known_taxa[] */
 export interface KnownTaxon {
   asv_id: string
@@ -59,6 +62,7 @@ export interface KnownTaxon {
   /** 0-1 */
   identity_score: number
   database_source: string
+  conservation_status: ConservationStatus
 }
 
 /** Response of GET /samples/{sample_id}/results */

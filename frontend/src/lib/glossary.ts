@@ -5,4 +5,8 @@ export const GLOSSARY = {
   noveltyScore: 'Novelty score: how distant a cluster is from anything in the reference databases — higher means less like a known match.',
   markerGene: 'Marker gene: the short standardized DNA region sequenced to identify organisms (18S for broad eukaryotes, COI for animals).',
   blankControl: 'Blank control: a sample with no biological material, run alongside real samples to detect contamination.',
+  conservationStatus:
+    'Conservation status: IUCN Red List category (LC, NT, VU, EN, CR, DD, or unknown) from a curated static table, not a live IUCN lookup — verify before citing.',
+  iucnCategory:
+    'IUCN category: the Red List threat level — from Least Concern (LC) through Near Threatened (NT), Vulnerable (VU), Endangered (EN), to Critically Endangered (CR); Data Deficient (DD) means not enough is known to assess.',
 } as const

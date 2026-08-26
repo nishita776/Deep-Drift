@@ -1,4 +1,4 @@
-import type { BiodiversityMetrics, KnownTaxon, NovelCluster } from './types'
+import type { BiodiversityMetrics, ConservationStatus, KnownTaxon, NovelCluster } from './types'
 
 /* ==========================================================================
    MOCK FIXTURES — deterministic, realistic data for the mock adapter.
@@ -8,37 +8,39 @@ interface TaxonRef {
   phylum: string
   class: string
   species: string
+  /** Mirrors the curated table in backend/app/data/conservation_status.json where the species overlaps. */
+  conservationStatus: ConservationStatus
 }
 
 const TAXA_POOL: TaxonRef[] = [
-  { phylum: 'Chordata', class: 'Actinopteri', species: 'Bathylagus euryops' },
-  { phylum: 'Chordata', class: 'Elasmobranchii', species: 'Centroscymnus coelolepis' },
-  { phylum: 'Chordata', class: 'Actinopteri', species: 'Coryphaenoides armatus' },
-  { phylum: 'Chordata', class: 'Ascidiacea', species: 'Culeolus sp.' },
-  { phylum: 'Arthropoda', class: 'Malacostraca', species: 'Gnathophausia ingens' },
-  { phylum: 'Arthropoda', class: 'Malacostraca', species: 'Eurythenes gryllus' },
-  { phylum: 'Arthropoda', class: 'Ostracoda', species: 'Gigantocypris agassizii' },
-  { phylum: 'Arthropoda', class: 'Copepoda', species: 'Calanus hyperboreus' },
-  { phylum: 'Cnidaria', class: 'Hydrozoa', species: 'Crossota norvegica' },
-  { phylum: 'Cnidaria', class: 'Anthozoa', species: 'Anthomastus sp.' },
-  { phylum: 'Cnidaria', class: 'Scyphozoa', species: 'Periphylla periphylla' },
-  { phylum: 'Mollusca', class: 'Cephalopoda', species: 'Vampyroteuthis infernalis' },
-  { phylum: 'Mollusca', class: 'Bivalvia', species: 'Calyptogena magnifica' },
-  { phylum: 'Mollusca', class: 'Gastropoda', species: 'Bathybembix sp.' },
-  { phylum: 'Annelida', class: 'Polychaeta', species: 'Chaetopterus sp.' },
-  { phylum: 'Annelida', class: 'Polychaeta', species: 'Alvinella pompejana' },
-  { phylum: 'Echinodermata', class: 'Holothuroidea', species: 'Peniagone diaphana' },
-  { phylum: 'Echinodermata', class: 'Ophiuroidea', species: 'Ophiomusium lymani' },
-  { phylum: 'Echinodermata', class: 'Asteroidea', species: 'Freyella elegans' },
-  { phylum: 'Porifera', class: 'Hexactinellida', species: 'Euplectella aspergillum' },
-  { phylum: 'Foraminifera', class: 'Globothalamea', species: 'Globobulimina sp.' },
-  { phylum: 'Bryozoa', class: 'Gymnolaemata', species: 'Cellaria sp.' },
-  { phylum: 'Nematoda', class: 'Chromadorea', species: 'Deontostoma sp.' },
-  { phylum: 'Ctenophora', class: 'Tentaculata', species: 'Beroe sp.' },
-  { phylum: 'Nemertea', class: 'Anopla', species: 'Baseodiscus sp.' },
-  { phylum: 'Chaetognatha', class: 'Sagittoidea', species: 'Eukrohnia hamata' },
-  { phylum: 'Radiolaria', class: 'Polycystinea', species: 'Collozoum sp.' },
-  { phylum: 'Dinoflagellata', class: 'Dinophyceae', species: 'Noctiluca scintillans' },
+  { phylum: 'Chordata', class: 'Actinopteri', species: 'Bathylagus euryops', conservationStatus: 'NT' },
+  { phylum: 'Chordata', class: 'Elasmobranchii', species: 'Centroscymnus coelolepis', conservationStatus: 'EN' },
+  { phylum: 'Chordata', class: 'Actinopteri', species: 'Coryphaenoides armatus', conservationStatus: 'NT' },
+  { phylum: 'Chordata', class: 'Ascidiacea', species: 'Culeolus sp.', conservationStatus: 'unknown' },
+  { phylum: 'Arthropoda', class: 'Malacostraca', species: 'Gnathophausia ingens', conservationStatus: 'LC' },
+  { phylum: 'Arthropoda', class: 'Malacostraca', species: 'Eurythenes gryllus', conservationStatus: 'DD' },
+  { phylum: 'Arthropoda', class: 'Ostracoda', species: 'Gigantocypris agassizii', conservationStatus: 'DD' },
+  { phylum: 'Arthropoda', class: 'Copepoda', species: 'Calanus hyperboreus', conservationStatus: 'LC' },
+  { phylum: 'Cnidaria', class: 'Hydrozoa', species: 'Crossota norvegica', conservationStatus: 'DD' },
+  { phylum: 'Cnidaria', class: 'Anthozoa', species: 'Anthomastus sp.', conservationStatus: 'unknown' },
+  { phylum: 'Cnidaria', class: 'Scyphozoa', species: 'Periphylla periphylla', conservationStatus: 'LC' },
+  { phylum: 'Mollusca', class: 'Cephalopoda', species: 'Vampyroteuthis infernalis', conservationStatus: 'DD' },
+  { phylum: 'Mollusca', class: 'Bivalvia', species: 'Calyptogena magnifica', conservationStatus: 'DD' },
+  { phylum: 'Mollusca', class: 'Gastropoda', species: 'Bathybembix sp.', conservationStatus: 'unknown' },
+  { phylum: 'Annelida', class: 'Polychaeta', species: 'Chaetopterus sp.', conservationStatus: 'unknown' },
+  { phylum: 'Annelida', class: 'Polychaeta', species: 'Alvinella pompejana', conservationStatus: 'DD' },
+  { phylum: 'Echinodermata', class: 'Holothuroidea', species: 'Peniagone diaphana', conservationStatus: 'DD' },
+  { phylum: 'Echinodermata', class: 'Ophiuroidea', species: 'Ophiomusium lymani', conservationStatus: 'DD' },
+  { phylum: 'Echinodermata', class: 'Asteroidea', species: 'Freyella elegans', conservationStatus: 'DD' },
+  { phylum: 'Porifera', class: 'Hexactinellida', species: 'Euplectella aspergillum', conservationStatus: 'DD' },
+  { phylum: 'Foraminifera', class: 'Globothalamea', species: 'Globobulimina sp.', conservationStatus: 'unknown' },
+  { phylum: 'Bryozoa', class: 'Gymnolaemata', species: 'Cellaria sp.', conservationStatus: 'unknown' },
+  { phylum: 'Nematoda', class: 'Chromadorea', species: 'Deontostoma sp.', conservationStatus: 'unknown' },
+  { phylum: 'Ctenophora', class: 'Tentaculata', species: 'Beroe sp.', conservationStatus: 'LC' },
+  { phylum: 'Nemertea', class: 'Anopla', species: 'Baseodiscus sp.', conservationStatus: 'unknown' },
+  { phylum: 'Chaetognatha', class: 'Sagittoidea', species: 'Eukrohnia hamata', conservationStatus: 'LC' },
+  { phylum: 'Radiolaria', class: 'Polycystinea', species: 'Collozoum sp.', conservationStatus: 'unknown' },
+  { phylum: 'Dinoflagellata', class: 'Dinophyceae', species: 'Noctiluca scintillans', conservationStatus: 'LC' },
 ]
 
 const DB_SOURCES = ['SILVA 138', 'PR2', 'BOLD', 'MIDORI2', 'NCBI nt']
@@ -93,6 +95,7 @@ export function generateKnownTaxa(count: number, seed: number): KnownTaxon[] {
       matched_taxon: `${taxIdFor(i)}|${taxon.phylum}|${taxon.class}|${taxon.species}`,
       identity_score: Math.round(identity * 1000) / 1000,
       database_source: DB_SOURCES[i % DB_SOURCES.length],
+      conservation_status: taxon.conservationStatus,
     })
   }
   return rows
@@ -146,6 +149,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_2318|Chordata|Actinopteri|Bathylagus euryops',
       identity_score: 0.97,
       database_source: 'SILVA 138',
+      conservation_status: 'NT',
     },
     {
       asv_id: 'ASV_0002',
@@ -155,6 +159,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_0442|Arthropoda|Malacostraca|Gnathophausia ingens',
       identity_score: 0.94,
       database_source: 'BOLD',
+      conservation_status: 'LC',
     },
     {
       asv_id: 'ASV_0003',
@@ -164,6 +169,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_1187|Cnidaria|Hydrozoa|Crossota norvegica',
       identity_score: 0.91,
       database_source: 'SILVA 138',
+      conservation_status: 'DD',
     },
     {
       asv_id: 'ASV_0004',
@@ -173,6 +179,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_3390|Mollusca|Cephalopoda|Vampyroteuthis infernalis',
       identity_score: 0.88,
       database_source: 'BOLD',
+      conservation_status: 'DD',
     },
     {
       asv_id: 'ASV_0005',
@@ -182,6 +189,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_2765|Chordata|Elasmobranchii|Centroscymnus coelolepis',
       identity_score: 0.95,
       database_source: 'SILVA 138',
+      conservation_status: 'EN',
     },
     {
       asv_id: 'ASV_0006',
@@ -191,6 +199,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_0921|Annelida|Polychaeta|Chaetopterus sp.',
       identity_score: 0.82,
       database_source: 'BOLD',
+      conservation_status: 'unknown',
     },
     {
       asv_id: 'ASV_0007',
@@ -200,6 +209,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_1654|Echinodermata|Holothuroidea|Peniagone diaphana',
       identity_score: 0.9,
       database_source: 'SILVA 138',
+      conservation_status: 'DD',
     },
     {
       asv_id: 'ASV_0008',
@@ -209,6 +219,7 @@ export function baseKnownTaxa(): KnownTaxon[] {
       matched_taxon: 'tax_4102|Foraminifera|Globothalamea|Globobulimina sp.',
       identity_score: 0.76,
       database_source: 'SILVA 138',
+      conservation_status: 'unknown',
     },
   ]
 }

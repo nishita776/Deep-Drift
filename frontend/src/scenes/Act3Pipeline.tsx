@@ -46,10 +46,10 @@ export function Act3Pipeline() {
   if (reducedMotion) {
     return (
       <section className="abyss-deep px-6 py-24">
-        <div className="mx-auto max-w-5xl text-center">
+        <div className="mx-auto max-w-[1800px] text-center">
           <p className="font-mono text-[13px] uppercase tracking-eyebrow text-ink-inv-2">The pipeline</p>
           <h2 className="mt-2 font-display text-3xl text-ink-inv">Known matches move fast. Everything else gets a second look.</h2>
-          <div className="mt-10 rounded-card border border-abyss-3 bg-abyss-2 p-8">
+          <div className="mx-auto mt-10 w-[90vw] max-w-[1600px] rounded-card border border-abyss-3 bg-abyss-2 p-8">
             <PipelineVisual progress={1} variant="dark" />
           </div>
         </div>
@@ -58,7 +58,7 @@ export function Act3Pipeline() {
   }
 
   return (
-    <section ref={sectionRef} className="abyss-deep relative" style={{ height: '320vh' }}>
+    <section ref={sectionRef} className="abyss-deep relative" style={{ height: '280vh' }}>
       <div className="sticky top-0 flex h-svh flex-col items-center justify-center px-6">
         <p className="font-mono text-[13px] uppercase tracking-eyebrow text-ink-inv-2">The pipeline</p>
         <h2 className="mt-2 max-w-2xl text-center font-display text-3xl text-ink-inv min-[700px]:text-4xl">
@@ -68,7 +68,7 @@ export function Act3Pipeline() {
           stage {stageIdx + 1} of {PIPELINE_STAGES.length} — {currentStageLabel(progress)}
         </p>
 
-        <div className="mt-10 w-full max-w-5xl rounded-card border border-abyss-3 bg-abyss-2 p-8">
+        <div className="mx-auto mt-8 w-[90vw] max-w-[1600px] rounded-card border border-abyss-3 bg-abyss-2 p-6 min-[900px]:p-8" style={{ minHeight: '60vh' }}>
           <PipelineVisual progress={progress} variant="dark" />
         </div>
 

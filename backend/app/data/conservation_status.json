@@ -1,0 +1,23 @@
+{
+  "_comment": "Curated IUCN Red List categories, keyed on the species_label segment of matched_taxon (id|Phylum|Class|species_label). Hand-picked for species that actually have a real, confident IUCN assessment in this author's knowledge -- most entries in the real reference FASTAs are accession-derived placeholders (18S) or unassessed obscure invertebrates/parasites (COI) and are deliberately left out of this table so they correctly default to 'unknown' rather than guessing. Never treat this as a live IUCN feed -- see the UI footnote.",
+  "Sepia officinalis": "LC",
+  "Arianta arbustorum": "LC",
+  "Pomacea canaliculata": "LC",
+  "Linckia guildingi": "LC",
+  "Lumbricus castaneus": "LC",
+  "Watersipora subtorquata": "LC",
+  "Membranipora membranacea": "LC",
+  "Hydra oligactis": "LC",
+  "Alvinella pompejana": "DD",
+  "Holothuria fuscopunctata": "DD",
+  "Xestospongia muta": "DD",
+  "Amphiura joubini": "DD",
+  "Crambionella orsini": "DD",
+  "Bathylagus euryops": "NT",
+  "Centroscymnus coelolepis": "EN",
+  "Coryphaenoides armatus": "NT",
+  "Gnathophausia ingens": "LC",
+  "Vampyroteuthis infernalis": "DD",
+  "Calyptogena magnifica": "DD",
+  "Euplectella aspergillum": "DD"
+}

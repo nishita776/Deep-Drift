@@ -1,0 +1,9 @@
+# Claude Code
+.claude/
+
+# Vite dependency cache (belongs under node_modules/.vite, not the repo root)
+.vite/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

@@ -1,5 +1,12 @@
 # Backend handover
 
+> **The app defaults to `VITE_API_MODE=mock`.** Whenever mock mode is
+> active, the nav shows an unmissable sand "● Mock data" badge — not
+> dev-gated, always visible, so nobody mistakes canned data for a live
+> backend. Once you switch to `http` mode (§2 below), that badge is
+> replaced by a live reachability pill (reachable/unreachable + the actual
+> error), so a dead backend is obvious instead of silent.
+
 DeepDrift's frontend is built against a mock adapter
 ([`src/api/mock.ts`](src/api/mock.ts)) that mirrors the real FastAPI
 backend's contract exactly. Everything you need to plug your backend in
@@ -52,7 +59,7 @@ and everything keeps working.
 | 1 | `POST /samples` | [NewAnalysis](src/screens/NewAnalysis.tsx) | `id`, `name`, `marker_gene`, `sample_type`, `status` |
 | 2 | `POST /samples/{id}/run` | [NewAnalysis](src/screens/NewAnalysis.tsx) (initial run), [Processing](src/screens/Processing.tsx) (Retry), [Samples](src/screens/Samples.tsx) (Re-run) | `id` (job id), `status`, `error_log` |
 | 3 | `GET /jobs/{job_id}/status` | [Processing](src/screens/Processing.tsx) — polled every 1500ms | `status`, `error_log` |
-| 4 | `GET /samples/{id}/results` | [ResultsLayout](src/screens/results/ResultsLayout.tsx) (header), [KnownTaxaTab](src/screens/results/KnownTaxaTab.tsx) (table) | `sample.name`, `sample.marker_gene`, `sample.sample_type`, `total_reads`, and per row: `asv_id`, `sequence_preview`, `count`, `matched_taxon`, `identity_score`, `database_source`. `known_taxa[].status` is received but **not yet surfaced in the UI** — free to ignore or extend. |
+| 4 | `GET /samples/{id}/results` | [ResultsLayout](src/screens/results/ResultsLayout.tsx) (header stat cards), [KnownTaxaTab](src/screens/results/KnownTaxaTab.tsx), [HeatmapTab](src/screens/results/HeatmapTab.tsx), [NetworkTab](src/screens/results/NetworkTab.tsx), [OverviewTab](src/screens/results/OverviewTab.tsx) | `sample.name`, `sample.marker_gene`, `sample.sample_type`, `total_reads`, and per row: `asv_id`, `sequence_preview`, `count`, `matched_taxon`, `identity_score`, `database_source`, `conservation_status`. `known_taxa[].status` is received but **not yet surfaced in the UI** — free to ignore or extend. `conservation_status` (`LC\|NT\|VU\|EN\|CR\|DD\|unknown`) is from a curated static table on the backend, not a live IUCN lookup — the UI footnote in KnownTaxaTab says so explicitly; keep that framing if you extend it. |
 | 5 | `GET /samples/{id}/novel-clusters` | [NovelClustersTab](src/screens/results/NovelClustersTab.tsx) | `id`, `placeholder_id`, `rank_prediction`, `nearest_reference`, `novelty_score`, `member_count`, `total_reads` |
 | 6 | `GET /samples/{id}/biodiversity` | [BiodiversityTab](src/screens/results/BiodiversityTab.tsx) | `shannon`, `simpson`, `richness`, `rarefaction_curve.depths`, `rarefaction_curve.richness` |
 | 7 | `GET /samples/compare?ids=` | [Compare](src/screens/Compare.tsx) | per sample id: `name`, `status`, `biodiversity` (or `null`) |
@@ -60,6 +67,11 @@ and everything keeps working.
 
 `src/api/types.ts` has the exact TypeScript shape for all eight — it's a
 line-for-line transcription of the contract, so it doubles as documentation.
+
+**No new endpoints exist for the Heatmap, Network, and Overview tabs** — all
+three are pure frontend derivations computed client-side from `known_taxa`
+(row 4) and `novel-clusters` (row 5), via the shared helpers in
+`src/lib/taxonomy.ts`. Nothing to add on the backend for these.
 
 ## 4. The four known bite-points
 

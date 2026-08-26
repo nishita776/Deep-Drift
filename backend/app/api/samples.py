@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import get_db, SessionLocal
 from app.config import settings
+from app.conservation import conservation_status_for
 from app.pipeline.runner import run_pipeline
 
 router = APIRouter(prefix="/samples", tags=["samples"])
@@ -84,6 +85,7 @@ def get_results(sample_id: str, db: Session = Depends(get_db)):
             asv_id=m.asv_id, sequence_preview=m.asv.sequence[:40] + "...",
             count=m.asv.count, status=m.status, matched_taxon=m.matched_taxon,
             identity_score=m.identity_score, database_source=m.database_source,
+            conservation_status=conservation_status_for(m.matched_taxon),
         )
         for m in matches
     ]

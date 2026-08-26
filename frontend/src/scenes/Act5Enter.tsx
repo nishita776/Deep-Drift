@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePrefersReducedMotion } from '../lib/usePrefersReducedMotion'
 
-export function Act4Enter() {
+export function Act5Enter() {
   const navigate = useNavigate()
   const reducedMotion = usePrefersReducedMotion()
   const [surfacing, setSurfacing] = useState(false)

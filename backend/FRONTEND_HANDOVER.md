@@ -125,7 +125,8 @@ GET /samples/{sample_id}/results
       "status": "confident_match",
       "matched_taxon": "ref2|Arthropoda|Copepoda|known_copepod_sp",
       "identity_score": 0.857,
-      "database_source": "sample_reference.fasta"
+      "database_source": "sample_reference.fasta",
+      "conservation_status": "unknown"
     }
   ],
   "total_reads": 38
@@ -136,6 +137,7 @@ Notes for the UI:
 - `matched_taxon` is a pipe-delimited string: `id|Phylum|Class|species_label`. You'll likely want to split this client-side into separate table columns rather than showing the raw string.
 - `identity_score` is 0–1 (not a percentage) — multiply by 100 for display if you want "%".
 - `sequence_preview` is truncated (40 chars + "...") — it's for a tooltip/detail view, not the main table.
+- `conservation_status` is one of `LC | NT | VU | EN | CR | DD | unknown` — an IUCN Red List category from a **curated static table** (`app/data/conservation_status.json`, keyed on the `species_label` segment of `matched_taxon`), **not a live IUCN lookup**. Defaults to `"unknown"` for anything not in the table — this is intentional, not a bug, since most reference-FASTA labels are accession-derived (18S) or unassessed obscure taxa (COI toy set), not real species names worth guessing a status for. Surface this provenance in the UI (a footnote near wherever the status is shown), not just in code — don't let it read as a live feed.
 
 ### 4b. Candidate novel clusters
 

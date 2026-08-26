@@ -89,7 +89,7 @@ export function Samples() {
                         <div className="flex justify-end gap-2">
                           {s.status === 'done' ? (
                             <Link
-                              to={`/results/${s.sampleId}/known`}
+                              to={`/results/${s.sampleId}/overview`}
                               className="rounded-control border border-border px-2.5 py-1.5 font-body text-[13px] text-ink-2 hover:border-teal hover:text-teal"
                             >
                               View

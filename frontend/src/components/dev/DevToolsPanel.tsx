@@ -1,5 +1,6 @@
 import { useState, useSyncExternalStore } from 'react'
 import { api, API_BASE, API_MODE } from '../../api/client'
+import { seedCompareDemo } from '../../api/devSeed'
 import {
   getMockControlsSnapshot,
   setMockDatasetSize,
@@ -32,9 +33,19 @@ type PingState = { status: 'idle' } | { status: 'checking' } | { status: 'ok' } 
 export function DevToolsPanel() {
   const [open, setOpen] = useState(false)
   const [ping, setPing] = useState<PingState>({ status: 'idle' })
+  const [seeding, setSeeding] = useState(false)
   const controls = useSyncExternalStore(subscribeMockControls, getMockControlsSnapshot)
 
   if (!import.meta.env.DEV) return null
+
+  async function runSeedCompareDemo() {
+    setSeeding(true)
+    try {
+      await seedCompareDemo()
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   async function runPing() {
     setPing({ status: 'checking' })
@@ -115,6 +126,19 @@ export function DevToolsPanel() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div className="mt-4 border-t border-border-soft pt-3">
+                <p className="font-mono text-[12px] uppercase tracking-mono-label text-ink-3">Compare demo (D4)</p>
+                <button
+                  type="button"
+                  onClick={runSeedCompareDemo}
+                  disabled={seeding}
+                  className="mt-2 rounded-control border border-border bg-surface-sunk px-3 py-1.5 font-body text-[13px] text-ink hover:border-teal disabled:opacity-50"
+                >
+                  {seeding ? 'Seeding…' : 'Seed 2 done + 1 stuck sample'}
+                </button>
+                <p className="mt-1 font-mono text-[11px] text-ink-3">Adds samples for Compare's null-biodiversity row.</p>
               </div>
             </>
           )}

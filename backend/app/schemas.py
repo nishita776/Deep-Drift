@@ -30,6 +30,9 @@ class TaxaMatchOut(BaseModel):
     matched_taxon: str | None
     identity_score: float | None
     database_source: str | None
+    # IUCN Red List category from a curated static table (app/conservation.py),
+    # NOT a live lookup. Defaults to "unknown" -- additive field, never absent.
+    conservation_status: str = "unknown"
 
 
 class ClusterOut(BaseModel):

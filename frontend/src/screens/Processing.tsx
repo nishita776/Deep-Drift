@@ -138,7 +138,7 @@ export function Processing() {
         {status === 'done' && (
           <button
             type="button"
-            onClick={() => navigate(`/results/${sampleId}/known`)}
+            onClick={() => navigate(`/results/${sampleId}/overview`)}
             className="hover-lift press-scale mt-8 rounded-pill bg-coral px-6 py-3 font-body text-[15px] font-medium text-ink"
           >
             View results

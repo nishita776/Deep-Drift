@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useSampleStore } from '../../store/useSampleStore'
+import { ApiModeBadge } from './ApiModeBadge'
 import { AnalyseIcon, CompareIcon, ResultsIcon, SamplesIcon } from './icons'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -13,7 +14,7 @@ export function AppShell() {
 
   function goToResults() {
     if (samples.length > 0) {
-      navigate(`/results/${samples[0].sampleId}/known`)
+      navigate(`/results/${samples[0].sampleId}/overview`)
     } else {
       navigate('/samples')
     }
@@ -31,6 +32,8 @@ export function AppShell() {
         >
           DeepDrift
         </Link>
+
+        <ApiModeBadge />
 
         <NavLink to="/samples" className={navLinkClass}>
           <SamplesIcon />

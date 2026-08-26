@@ -1,12 +1,11 @@
-import { useEffect, useState, type CSSProperties } from 'react'
-import { useParams } from 'react-router-dom'
-import { api } from '../../api/client'
-import type { NovelCluster } from '../../api/types'
+import { useState, type CSSProperties } from 'react'
 import { EmptyState } from '../../components/ui/EmptyState'
 import { SlideOver } from '../../components/ui/SlideOver'
 import { SonarLoader } from '../../components/ui/SonarLoader'
 import { formatCount, formatPercent } from '../../lib/format'
 import { useReviewLedger, type ReviewDecision } from '../../store/useReviewLedger'
+import type { NovelCluster } from '../../api/types'
+import { useResultsContext } from './ResultsLayout'
 
 const DECISION_LABEL: Record<ReviewDecision, string> = {
   confirmed: 'Confirmed for review',
@@ -20,7 +19,7 @@ const DECISION_TONE: Record<ReviewDecision, string> = {
   flagged: 'border-sand text-sand',
 }
 
-function NoveltyBar({ score }: { score: number }) {
+export function NoveltyBar({ score }: { score: number }) {
   return (
     <div className="relative flex h-7 w-full max-w-40 items-center overflow-hidden rounded-control border border-border-soft bg-surface-sunk">
       <div className="absolute inset-y-0 left-0 bg-coral" style={{ width: `${score * 100}%` }} />
@@ -32,28 +31,11 @@ function NoveltyBar({ score }: { score: number }) {
 }
 
 export function NovelClustersTab() {
-  const { sampleId = '' } = useParams()
-  const [clusters, setClusters] = useState<NovelCluster[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { novelClusters: clusters, novelClustersError: error } = useResultsContext()
   const [selected, setSelected] = useState<NovelCluster | null>(null)
 
   const entries = useReviewLedger((s) => s.entries)
   const setDecision = useReviewLedger((s) => s.setDecision)
-
-  useEffect(() => {
-    let cancelled = false
-    api
-      .getNovelClusters(sampleId)
-      .then((c) => {
-        if (!cancelled) setClusters(c)
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : String(err))
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [sampleId])
 
   if (error) {
     return <div className="rounded-control border border-sand bg-surface px-4 py-3 font-body text-[14px] text-ink">Could not load candidate clusters: {error}</div>

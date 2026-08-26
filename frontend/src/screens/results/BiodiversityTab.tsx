@@ -1,12 +1,12 @@
 import { curveMonotoneX, line as d3line } from 'd3-shape'
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { api } from '../../api/client'
-import { ApiError, type BiodiversityMetrics } from '../../api/types'
+import type { BiodiversityMetrics } from '../../api/types'
 import { CountUp } from '../../components/ui/CountUp'
+import { SonarLoader } from '../../components/ui/SonarLoader'
 import { Tip } from '../../components/ui/Tip'
 import { formatCount } from '../../lib/format'
 import { GLOSSARY } from '../../lib/glossary'
+import { useResultsContext } from './ResultsLayout'
 
 const CHART_W = 660
 const CHART_H = 280
@@ -117,7 +117,7 @@ function RarefactionChart({ curve }: { curve: BiodiversityMetrics['rarefaction_c
   )
 }
 
-function StatCard({ label, value, decimals, tip, description }: { label: string; value: number; decimals: number; tip?: string; description: string }) {
+export function StatCard({ label, value, decimals, tip, description }: { label: string; value: number; decimals: number; tip?: string; description: string }) {
   return (
     <div className="rounded-card border border-border bg-surface p-6" style={{ boxShadow: 'var(--shadow-card), var(--shadow-inset-top)' }}>
       <p className="font-mono text-[12px] uppercase tracking-mono-label text-ink-3">
@@ -132,57 +132,30 @@ function StatCard({ label, value, decimals, tip, description }: { label: string;
   )
 }
 
+export function BiodiversityProcessingState() {
+  return (
+    <div className="flex flex-col items-center gap-3 py-16 text-center" aria-live="polite">
+      <span className="sonar-sweep" aria-hidden="true" />
+      <p className="font-body text-[15px] text-ink-2">Still processing — biodiversity metrics aren't ready yet.</p>
+      <p className="font-mono text-[12px] text-ink-3">This updates automatically once the pipeline finishes.</p>
+    </div>
+  )
+}
+
 export function BiodiversityTab() {
-  const { sampleId = '' } = useParams()
-  const [data, setData] = useState<BiodiversityMetrics | null>(null)
-  const [notReady, setNotReady] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { biodiversity: data, biodiversityState, biodiversityError } = useResultsContext()
 
-  useEffect(() => {
-    let cancelled = false
-    let intervalId: ReturnType<typeof setInterval> | null = null
-
-    async function load() {
-      try {
-        const result = await api.getBiodiversity(sampleId)
-        if (cancelled) return
-        setData(result)
-        setNotReady(false)
-        if (intervalId) clearInterval(intervalId)
-      } catch (err) {
-        if (cancelled) return
-        if (err instanceof ApiError && err.status === 409) {
-          setNotReady(true)
-        } else {
-          setError(err instanceof Error ? err.message : String(err))
-          if (intervalId) clearInterval(intervalId)
-        }
-      }
-    }
-
-    load()
-    intervalId = setInterval(load, 1500)
-    return () => {
-      cancelled = true
-      if (intervalId) clearInterval(intervalId)
-    }
-  }, [sampleId])
-
-  if (error) {
-    return <div className="rounded-control border border-sand bg-surface px-4 py-3 font-body text-[14px] text-ink">Could not load biodiversity metrics: {error}</div>
+  if (biodiversityState === 'error') {
+    return <div className="rounded-control border border-sand bg-surface px-4 py-3 font-body text-[14px] text-ink">Could not load biodiversity metrics: {biodiversityError}</div>
   }
 
-  if (notReady && !data) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center" aria-live="polite">
-        <span className="sonar-sweep" aria-hidden="true" />
-        <p className="font-body text-[15px] text-ink-2">Still processing — biodiversity metrics aren't ready yet.</p>
-        <p className="font-mono text-[12px] text-ink-3">This updates automatically once the pipeline finishes.</p>
-      </div>
-    )
+  if (biodiversityState === 'loading') {
+    return <SonarLoader label="Loading biodiversity metrics…" />
   }
 
-  if (!data) return null
+  if (biodiversityState === 'processing' || !data) {
+    return <BiodiversityProcessingState />
+  }
 
   return (
     <div>
