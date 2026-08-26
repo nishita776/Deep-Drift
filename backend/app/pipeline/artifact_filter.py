@@ -29,7 +29,15 @@ class FilterResult:
     passes: bool
 
 
-def _is_chimera(sequence: str, reference_fasta: str, min_half_identity: float = 0.3) -> bool:
+def _is_chimera(sequence: str, reference_fasta: str, min_half_identity: float = 0.6) -> bool:
+    # min_half_identity must sit ABOVE the by-chance containment floor for a
+    # short read against a large reference set. Empirically, a random ~150 bp
+    # half scores up to ~0.5 containment against *some* reference purely by
+    # coincidence (short query, many references, shared k-mers). A threshold
+    # of 0.3 (the old value, a leftover from Jaccard scoring) therefore
+    # flagged essentially every genuinely novel read as a chimera and wiped
+    # out the entire novel-discovery path. 0.6 cleanly separates real
+    # both-halves-match chimeras (each half ~0.95+) from that noise floor.
     mid = len(sequence) // 2
     first_half, second_half = sequence[:mid], sequence[mid:]
     if len(first_half) < 20 or len(second_half) < 20:

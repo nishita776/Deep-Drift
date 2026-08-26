@@ -43,12 +43,25 @@ def _load_reference(reference_fasta: str) -> list[tuple[str, set[str]]]:
 
 
 def search_reference(sequence: str, reference_fasta: str | None = None, k: int = 6) -> ReferenceMatch:
-    """Finds the best-matching reference sequence by k-mer Jaccard similarity.
+    """Finds the best-matching reference sequence by k-mer CONTAINMENT.
 
-    Jaccard similarity is a reasonable stand-in for identity% at this
-    prototype stage, but is NOT the same statistic VSEARCH/BLAST report —
-    don't quote this number as "% identity" in front of domain experts
-    without re-deriving the threshold against real alignment output.
+    Score = fraction of the QUERY's k-mers that are also present in the
+    reference sequence. This is deliberately NOT Jaccard similarity.
+
+    Why containment and not Jaccard: real eDNA reads are short (150-450 bp)
+    while reference 18S/COI sequences are long (up to ~1800 bp). Jaccard
+    (|A∩B| / |A∪B|) is dominated by the size difference — a perfect 150 bp
+    substring of an 1800 bp reference shares only ~1/12 of the union's
+    k-mers, so it scores ~0.1 even though it is a perfect match. That made
+    the confident_match_threshold (0.85) impossible to ever clear for
+    realistic read lengths, so every read fell through to the novel path
+    and the known-taxa table came back empty.
+
+    Containment (|A∩B| / |A|) is length-robust: a perfect substring of any
+    length scores 1.0, a few mismatches score ~0.95+, and an unrelated read
+    scores well below 0.5 — so a 0.85 threshold is now meaningful. This is
+    still NOT the % identity VSEARCH/BLAST report; re-derive the threshold
+    against real alignment output before quoting numbers to domain experts.
     """
     reference_fasta = reference_fasta or settings.reference_fasta
     query_kmers = _kmers(sequence, k)
@@ -60,8 +73,7 @@ def search_reference(sequence: str, reference_fasta: str | None = None, k: int =
         if not ref_kmers:
             continue
         intersection = len(query_kmers & ref_kmers)
-        union = len(query_kmers | ref_kmers)
-        score = intersection / union if union else 0.0
+        score = intersection / len(query_kmers)  # containment: query k-mers found in ref
         if score > best_score:
             best_label, best_score = label, score
 
