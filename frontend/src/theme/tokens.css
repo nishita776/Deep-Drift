@@ -1,0 +1,151 @@
+/* ==========================================================================
+   DEEPDRIFT DESIGN TOKENS
+   ==========================================================================
+   Every colour, font, radius, spacing step, shadow and easing curve used
+   anywhere in the product lives here as a CSS custom property. Components
+   must reference these tokens (directly, or via the Tailwind utilities
+   generated from them below) — never a raw hex, a raw px radius, or a
+   hardcoded font-family.
+
+   Two palettes coexist at all times, not as a light/dark toggle but as two
+   distinct zones of the product:
+     - shell/surface/ink/teal/coral/...  -> the app screens (always light)
+     - abyss/ink-inv/...                 -> the homepage "Descent" (always dark)
+   ========================================================================== */
+
+@import 'tailwindcss';
+
+:root {
+  /* ---------------------------------------------------------------------
+     COLOUR — light / dashboard palette
+     --------------------------------------------------------------------- */
+  --shell: #f2f7f5; /* page bg — off-white with a green cast, never #fff */
+  --surface: #fafdfb;
+  --surface-sunk: #e8f1ee;
+  --border: #d3e3de;
+  --border-soft: #e3edea;
+
+  --ink: #0f2e33; /* deep teal-black, not pure black */
+  --ink-2: #3a5c60;
+  --ink-3: #6e8b8e;
+
+  --teal: #0e7c86; /* PRIMARY — known taxa, links, active states */
+  --teal-deep: #075a66;
+  --seafoam: #7fd1c1;
+  --seafoam-pale: #d7ede6;
+
+  --coral: #e0705c; /* ACCENT — novelty + primary CTA only. Never decorative. */
+  --coral-soft: #f6d9d2;
+  --sand: #e3b86b; /* warnings / verification needed */
+  --kelp: #4a7c59; /* stable / confirmed */
+
+  /* ---------------------------------------------------------------------
+     COLOUR — dark / "Deep" palette (homepage only). Blue-green, not black.
+     --------------------------------------------------------------------- */
+  --abyss: #072a33;
+  --abyss-2: #0b3742;
+  --abyss-3: #114a56;
+  --ink-inv: #ddeeea;
+  --ink-inv-2: #9bbdbb;
+
+  /* ---------------------------------------------------------------------
+     TYPOGRAPHY
+     --------------------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Figtree', 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  --tracking-display: -0.02em;
+  --tracking-eyebrow: 0.06em;
+  --tracking-mono-label: 0.04em;
+
+  /* ---------------------------------------------------------------------
+     RADIUS
+     --------------------------------------------------------------------- */
+  --radius-card: 14px;
+  --radius-control: 10px;
+  --radius-pill: 9999px;
+
+  /* ---------------------------------------------------------------------
+     SPACING — 4pt scale
+     --------------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ---------------------------------------------------------------------
+     SHADOW & DEPTH
+     --------------------------------------------------------------------- */
+  --shadow-card: 0 1px 2px rgba(15, 46, 51, 0.04), 0 8px 24px rgba(15, 46, 51, 0.05);
+  --shadow-inset-top: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --shadow-none: none;
+
+  /* ---------------------------------------------------------------------
+     MOTION
+     --------------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 180ms;
+  --duration-standard: 240ms;
+  --duration-reveal-step: 60ms;
+}
+
+/* ==========================================================================
+   TAILWIND THEME — generated 1:1 from the custom properties above.
+   `inline` so utilities stay in sync if a token's runtime value ever changes
+   (e.g. a themed sub-tree overriding --ink locally) rather than being baked
+   in at build time.
+   ========================================================================== */
+@theme inline {
+  --color-shell: var(--shell);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-border: var(--border);
+  --color-border-soft: var(--border-soft);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+
+  --color-teal: var(--teal);
+  --color-teal-deep: var(--teal-deep);
+  --color-seafoam: var(--seafoam);
+  --color-seafoam-pale: var(--seafoam-pale);
+
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-sand: var(--sand);
+  --color-kelp: var(--kelp);
+
+  --color-abyss: var(--abyss);
+  --color-abyss-2: var(--abyss-2);
+  --color-abyss-3: var(--abyss-3);
+  --color-ink-inv: var(--ink-inv);
+  --color-ink-inv-2: var(--ink-inv-2);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --tracking-display: var(--tracking-display);
+  --tracking-eyebrow: var(--tracking-eyebrow);
+  --tracking-mono-label: var(--tracking-mono-label);
+
+  --radius-card: var(--radius-card);
+  --radius-control: var(--radius-control);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-card: var(--shadow-card);
+
+  --ease-standard: var(--ease-standard);
+}
